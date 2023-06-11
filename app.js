@@ -1,49 +1,81 @@
-const express = require('express')
-const app = express()
-const path = require('path')
-const port = 3000
+const express = require('express');
+const bodyParser = require('body-parser');
+const fs = require('fs').promises; 
+const util = require('util');
+const app = express();
 
-let todoList = [];
-
-app.use(express.json());
-
-app.use('/static', express.static(path.join(__dirname, 'node_modules')));
+app.use(bodyParser.json());
 app.use(express.static('public'));
 
+let data;
+fs.readFile('data.json')
+    .then(fileData => {
+        data = JSON.parse(fileData);
+    })
+    .catch(err => {
+        if (err.code === 'ENOENT') {
+            data = [];
+        } else {
+            throw err;
+        }
+    });
 
-
+function saveData() {
+    return fs.writeFile('data.json', JSON.stringify(data));
+}
 
 app.get('/todos', (req, res) => {
-  res.json(todoList);
+    res.json(data);
 });
 
 app.post('/todos', (req, res) => {
-  const { note } = req.body;
-  todoList.push(note);
-  res.status(201).json({ message: 'Note added successfully', note });
-});
-
-app.put('/todos/:id', (req, res) => {
-  const { id } = req.params;
-  const { note } = req.body;
-  if (id >= 0 && id < todoList.length) {
-    todoList[id] = note;
-    res.json({ message: 'Note updated successfully', note });
-  } else {
-    res.status(404).json({ message: 'Note not found' });
-  }
+    const task = req.body;
+    task.id = Date.now();  
+    task.date = new Date().toISOString();
+    data.push(task);
+    saveData()
+        .then(() => {
+            res.json(task);
+        })
+        .catch(err => {
+            res.sendStatus(500);
+        });
 });
 
 app.delete('/todos/:id', (req, res) => {
-  const { id } = req.params;
-  if (id >= 0 && id < todoList.length) {
-    const removedNote = todoList.splice(id, 1);
-    res.json({ message: 'Note deleted successfully', note: removedNote });
-  } else {
-    res.status(404).json({ message: 'Note not found' });
-  }
+    const index = data.findIndex(task => task.id == req.params.id);
+    if (index !== -1) {
+        data.splice(index, 1);
+        saveData()
+            .then(() => {
+                res.sendStatus(200);
+            })
+            .catch(err => {
+                res.sendStatus(500);
+            });
+    } else {
+        res.sendStatus(404);
+    }
 });
 
-app.listen(port, () => {
-  console.log(`App listening at http://localhost:${port}`)
-})
+app.put('/todos/:id', (req, res) => {
+    const index = data.findIndex(task => task.id == req.params.id);
+    if (index !== -1) {
+        const task = req.body;
+        task.date = new Date().toISOString();
+        data[index] = task;
+        saveData()
+            .then(() => {
+            res.json(task);
+        })
+        .catch(err => {
+            res.sendStatus(500);
+        });
+    } else {
+        res.sendStatus(404);
+    }
+});
+
+app.listen(3000, () => {
+    console.log('Server is running on port 3000');
+});

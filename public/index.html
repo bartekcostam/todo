@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="/static/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+
     <title>Todo List</title>
 </head>
 <body>
@@ -16,73 +17,101 @@
             </div>
             <button type="submit" class="btn btn-primary">Add task</button>
         </form>
-        <ul id="todo-list" class="list-group mt-4">
-            <!-- List items will be added here -->
-        </ul>
+        <ul id="todo-list" class="list-group mt-4"></ul>
     </div>
-</body>
 
-<script>
-document.addEventListener('DOMContentLoaded', (event) => {
-    const form = document.getElementById('todo-form');
-    const input = document.getElementById('todo-input');
-    const list = document.getElementById('todo-list');
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('todo-form');
+        const input = document.getElementById('todo-input');
+        const list = document.getElementById('todo-list');
 
-    // Load existing tasks
-    fetch('/todos')
-        .then(response => response.json())
-        .then(data => {
-            for (const task of data) {
-                const item = document.createElement('li');
-                item.textContent = task;
-                item.className = 'list-group-item';
-                list.appendChild(item);
-                
-                // Add delete button to each list item
-                const button = document.createElement('button');
-                button.textContent = 'Delete';
-                button.className = 'btn btn-danger btn-sm float-right delete-btn';
-                item.appendChild(button);
+        // Load existing tasks
+        fetch('/todos')
+            .then(response => response.json())
+            .then(data => {
+                for (const task of data) {
+                    addListItem(task);
+                }
+            });
 
-                // Handle button click
-                button.addEventListener('click', () => {
-                    // Send a DELETE request to the server
-                    fetch(`/todos/${data.id}`, {
-                        method: 'DELETE',
-                    })
-                    .then(() => {
-                        // Remove the item from the list
-                        list.removeChild(item);
-                    });
-                });
-            }
+        // Handle form submissions
+       
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            
+            // Send a POST request to the server
+            const task = input.value;
+            fetch('/todos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ note: task }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Add the new task to the list
+                addListItem(data);
+
+                // Clear the input field
+                input.value = '';
+            });
         });
 
-    // Handle form submissions
-    form.addEventListener('submit', (event) => {
-        event.preventDefault();
-
-        // Send a POST request to the server
-        const task = input.value;
-        fetch('/todos', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ note: task }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Add the new task to the list
+        function addListItem(task) {
             const item = document.createElement('li');
-            item.textContent = data.note;
+            item.textContent = `${task.note} (added on ${new Date(task.date).toLocaleString()})`;
             item.className = 'list-group-item';
-            list.appendChild(item);
 
-            // Clear the input field
-            input.value = '';
-        });
+            // Add delete button to each list item
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.className = 'btn btn-danger btn-sm float-right delete-btn';
+            item.appendChild(deleteButton);
+
+            // Handle delete button click
+            deleteButton.addEventListener('click', () => {
+                // Send a DELETE request to the server
+                fetch(`/todos/${task.id}`, {
+                    method: 'DELETE',
+                })
+                .then(() => {
+                    // Remove the item from the list
+                    list.removeChild(item);
+                });
+            });
+
+            // Add edit button to each list item
+            const editButton = document.createElement('button');
+            editButton.textContent = 'Edit';
+            editButton.className = 'btn btn-secondary btn-sm float-right edit-btn mr-2';
+            item.appendChild(editButton);
+
+            // Handle edit button click
+            editButton.addEventListener('click', () => {
+                const newNote = prompt('Edit the note:', task.note);
+                if (newNote !== null) {
+                    fetch(`/todos/${task.id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ note: newNote }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        item.textContent = `${data.note} (added on ${new Date(data.date).toLocaleString()})`;
+                        item.appendChild(deleteButton);
+                        item.appendChild(editButton);
+                    });
+                }
+            });
+
+            // Add the item to the list
+            list.appendChild(item);
+        }
     });
-});
-</script>
+    </script>
+</body>
 </html>
