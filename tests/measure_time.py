@@ -65,7 +65,7 @@ def edit_task(old_task):
         print("Found the task to edit.")
 
         # Scroll the task element into view
-        driver.execute_script("arguments[0].scrollIntoView();", task_element)
+        driver.execute_script("arguments[0].scrollIntoViewIfNeeded(true);", task_element)
 
         # Click the edit button
         edit_button = task_element.find_element(By.XPATH, './/button[normalize-space()="Edit"]')
@@ -76,6 +76,13 @@ def edit_task(old_task):
         input_field = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, "todo-input"))
         )
+
+        # Check if an alert is present
+        alert = EC.alert_is_present()(driver)
+        if alert:
+            # Accept the alert
+            alert.accept()
+            print("Accepted the alert.")
 
         # Generate a new random word
         new_word = random_word()
@@ -133,7 +140,7 @@ def delete_random_task():
     return delete_time
 
 try:
-    num_loops = 100  # Change the number of loops as desired
+    num_loops = 15  # Change the number of loops as desired
 
     with open('timing_data.csv', 'w', newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
