@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/static/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Todo List</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Todo List</h1>
+        <form id="todo-form">
+            <div class="form-group">
+                <label for="todo-input">New task</label>
+                <input type="text" id="todo-input" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary">Add task</button>
+        </form>
+        <ul id="todo-list" class="list-group mt-4">
+            <!-- List items will be added here -->
+        </ul>
+    </div>
+</body>
+
+<script>
+document.addEventListener('DOMContentLoaded', (event) => {
+    const form = document.getElementById('todo-form');
+    const input = document.getElementById('todo-input');
+    const list = document.getElementById('todo-list');
+
+    // Load existing tasks
+    fetch('/todos')
+        .then(response => response.json())
+        .then(data => {
+            for (const task of data) {
+                const item = document.createElement('li');
+                item.textContent = task;
+                item.className = 'list-group-item';
+                list.appendChild(item);
+                
+                // Add delete button to each list item
+                const button = document.createElement('button');
+                button.textContent = 'Delete';
+                button.className = 'btn btn-danger btn-sm float-right delete-btn';
+                item.appendChild(button);
+
+                // Handle button click
+                button.addEventListener('click', () => {
+                    // Send a DELETE request to the server
+                    fetch(`/todos/${data.id}`, {
+                        method: 'DELETE',
+                    })
+                    .then(() => {
+                        // Remove the item from the list
+                        list.removeChild(item);
+                    });
+                });
+            }
+        });
+
+    // Handle form submissions
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        // Send a POST request to the server
+        const task = input.value;
+        fetch('/todos', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ note: task }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Add the new task to the list
+            const item = document.createElement('li');
+            item.textContent = data.note;
+            item.className = 'list-group-item';
+            list.appendChild(item);
+
+            // Clear the input field
+            input.value = '';
+        });
+    });
+});
+</script>
+</html>

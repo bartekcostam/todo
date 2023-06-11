@@ -1,10 +1,17 @@
 const express = require('express')
 const app = express()
+const path = require('path')
 const port = 3000
 
 let todoList = [];
 
 app.use(express.json());
+
+app.use('/static', express.static(path.join(__dirname, 'node_modules')));
+app.use(express.static('public'));
+
+
+
 
 app.get('/todos', (req, res) => {
   res.json(todoList);
