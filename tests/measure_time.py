@@ -24,7 +24,7 @@ if args.headless:
 driver = webdriver.Chrome(options=options)
 
 # Define the URL of your web app
-url = 'http://localhost:3000'
+url = 'http://node86370-env-9258687.unicloud.pl/'
 
 # Go to the web app
 driver.get(url)
@@ -140,7 +140,7 @@ def delete_random_task():
     return delete_time
 
 try:
-    num_loops = 15  # Change the number of loops as desired
+    num_loops = 50  # Change the number of loops as desired
 
     with open('timing_data.csv', 'w', newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
