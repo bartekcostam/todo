@@ -1,0 +1,24 @@
+{
+  "name": "todo",
+  "version": "1.0.0",
+  "description": "simple todo app to test server workloads on multiple cloud platforms",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bartekcostam/todo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bartekcostam/todo/issues"
+  },
+  "homepage": "https://github.com/bartekcostam/todo#readme",
+  "dependencies": {
+    "bootstrap": "^5.3.0",
+    "express": "^4.18.2"
+  }
+}
