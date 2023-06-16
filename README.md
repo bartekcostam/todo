@@ -1,4 +1,4 @@
-# todo
+# Todo
 simple todo app to test server workloads on multiple cloud platforms
 
 
